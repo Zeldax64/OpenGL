@@ -1,21 +1,27 @@
 #include "common/Model.hpp"
 
 Model::Model(char* path) {
+	this->model = glm::mat4(1.0);
 	loadModel(path);
 }
 
 Model::~Model() {}
 
 void Model::draw(Shader shader) {
+	shader.setMat4("model", this->model);
 	for(GLuint i = 0; i < meshes.size(); i++) {
 		meshes[i].draw(shader);		
 	}
 }
 
+void Model::setModelMatrix(glm::mat4 & model) {
+	this->model = model;
+}
+
 void Model::loadModel(char* path) {
 	Assimp::Importer importer;
 	//const aiScene *scene = importer.ReadFile(path, 	aiProcess_Triangulate | aiProcess_FlipUVs);
-	const aiScene *scene = importer.ReadFile(path, 	aiProcess_Triangulate);
+	const aiScene *scene = importer.ReadFile(path, 	aiProcess_Triangulate | aiProcess_JoinIdenticalVertices );
 
 	if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
 		std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
@@ -58,11 +64,10 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene * scene) {
 		vector.z = mesh->mVertices[i].z;
 		vertex.Position = vector;
 
-		/*
 		vector.x = mesh->mNormals[i].x;
 		vector.y = mesh->mNormals[i].y;
 		vector.z = mesh->mNormals[i].z;
-		*/
+
 		vertex.Normal = vector;
 		
 		if(mesh->mTextureCoords[0]) {// Does the mesh contain texture coordinates? 
@@ -99,7 +104,25 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene * scene) {
 		vector<Texture> specularMaps = loadMaterialTextures(material,
 											aiTextureType_SPECULAR, "texture_specular");
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+		
+		//aiColor3D color(0.0f, 0.0f, 0.0f);
+		aiColor3D amb(0.0f, 0.0f, 0.0f);
+		aiColor3D dif(0.0f, 0.0f, 0.0f);
+		aiColor3D spe(0.0f, 0.0f, 0.0f);
+		float shine;
+		material->Get(AI_MATKEY_COLOR_AMBIENT, amb);
+		material->Get(AI_MATKEY_COLOR_DIFFUSE, dif);
+		material->Get(AI_MATKEY_COLOR_SPECULAR, spe);
+		material->Get(AI_MATKEY_SHININESS, shine);
+
+		std::cout << "Printing Mesh Material"<< std::endl;
+		std::cout << "Ambient: R: " << amb.r << " G: " << amb.g << " B:" << amb.b << std::endl;
+		std::cout << "Diffuse: R: " << dif.r << " G: " << dif.g << " B:" << dif.b << std::endl;
+		std::cout << "Specular: R: " << spe.r << " G: " << spe.g << " B:" << spe.b << std::endl;
+		std::cout << "Shininess: " << shine << std::endl;
+		
 	}
+
 
 	return Mesh(vertices, indices, textures);
 }

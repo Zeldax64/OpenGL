@@ -8,6 +8,9 @@
 // GL
 #include <GL/glew.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 // Assimp
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -24,6 +27,8 @@ GLuint TextureFromFile(const char *path, const string &directory, bool gamma = f
 
 class Model 
 {	
+	glm::mat4 model;
+
 	// Model data
 	vector<Mesh> meshes;
 	string directory;
@@ -38,4 +43,6 @@ public:
 	Model(char* path);
 	~Model();
 	void draw(Shader shader);
+
+	void setModelMatrix(glm::mat4 &model);
 };

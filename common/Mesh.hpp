@@ -27,6 +27,13 @@ struct Texture {
 	string path;
 };
 
+struct Material {
+	glm::vec3 Ambient;
+	glm::vec3 Diffuse;
+	glm::vec3 Specular;
+	float Shininess;
+};
+
 class Mesh {
 	GLuint VAO; // Vertex Attribute Object
 	GLuint VBO; // Vertex Buffer Object
@@ -39,7 +46,7 @@ public:
 	vector<Vertex> vertices;
 	vector<GLuint> indices;
 	vector<Texture> textures;
-
+	//Material mat;
 	// Functions
 	Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures);
 	~Mesh();

@@ -30,14 +30,8 @@ static const GLfloat triangle_vertex[] = {
 
 GLFWwindow* window;
 
-// Light position
-glm::vec3 lightPos(10.0f, 0.0f, 0.0f);
-//glm::vec3 lightPos(10.0f, -10.0f, 10.0f);
-//glm::vec3 lightPos(0.0f, -2.0f, 0.0f);
-//glm::vec3 lightPos(0.0f, 0.0f, 3.0f);
-		
 // TODO: Gambiarra variable :D
-
+GLuint TextureUniform;
 
 #define WIDTH 800
 #define HEIGHT 600
@@ -93,37 +87,13 @@ int buildScenery() {
 	//char * path = "models/general/cube/cube_textured.obj";
 	//char * path = "models/general/scenery/simplev5.obj";
 	// N64
-	//char * path = "models/N64/OoT/link/YoungLink.obj";
+	char * path = "models/N64/OoT/link/YoungLink.obj";
 	//char * path = "models/N64/OoT/hyrulefield/hyrulefeild.obj";
 	//char * path = "models/N64/OoT/templeoftime/TempleofTime.obj";
 	
-	glm::mat4 ModelMatrix = glm::mat4(1.0);
-	/*
-	Model* model1 = new Model("models/N64/OoT/link/YoungLink.obj");
-	ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.05f));
-	
-	model1->setModelMatrix(ModelMatrix);
-	*/
+	Model* model = new Model(path);
 
-	Model* model2 = new Model("models/general/cube/cube_textured.obj");
-
-	ModelMatrix = glm::mat4(1.0);
-	ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1.2f));
-	ModelMatrix = glm::translate(ModelMatrix, lightPos);
-
-	model2->setModelMatrix(ModelMatrix);
-
-	/*
-	Model* model3 = new Model("models/general/scenery/simplev5.obj");
-	ModelMatrix = glm::mat4(1.0);
-	model3->setModelMatrix(ModelMatrix);
-	*/
-	Model* cube = new Model("models/general/cube/cube_textured.obj");
-	models.push_back(cube);
-	//models.push_back(model1);
-	models.push_back(model2);
-	//models.push_back(model3);
-
+	models.push_back(model);
 	return 0;
 }
 
@@ -144,15 +114,19 @@ int main() {
 	}
 	
 	// Loading Shaders
-	Shader lightShader("shaders/LightShader.vert", "shaders/LightShader.frag");
-//	Shader lightShader("LightShader.vert", "LightShader.frag");
-	Shader lampShader("shaders/LightShader.vert", "shaders/LampShader.frag");
-	GLuint programID = lightShader.ID;
+	Shader shader("shaders/SimpleVertexShader.vert", "shaders/SimpleFragmentShader.frag");
+	GLuint programID = shader.ID;
+
 	if(programID == 0) {
 		std::cout << "ERROR::Shader loading" << std::endl;
 		return -1;		
 	}
 
+	// Get a handle for our "myTextureSampler" uniform
+	GLuint TextureID = glGetUniformLocation(programID, "myTextureSampler");
+	// TODO: Clean gambiarra ;D
+	TextureUniform = TextureID;
+	
 	// Load models
 	buildScenery();
 
@@ -161,49 +135,21 @@ int main() {
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		// Use our shader
+		shader.use();
+
 		// Compute the MVP matrix from keyboard and mouse input
 		computeMatricesFromInputs();
 		glm::mat4 ProjectionMatrix = getProjectionMatrix();
 		glm::mat4 ViewMatrix = getViewMatrix();
-
-		// Use our shader
-		lightShader.use();
+		glm::mat4 ModelMatrix = glm::mat4(1.0);
 		
 		// Send our transformation to the currently bound shader, in the "MVP" uniform
-		lightShader.setMat4("view", ViewMatrix);
-		lightShader.setMat4("projection", ProjectionMatrix);
+		shader.setMat4("model", ModelMatrix);
+		shader.setMat4("view", ViewMatrix);
+		shader.setMat4("projection", ProjectionMatrix);
 
-		//lightShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-		lightShader.setVec3("objectColor", 1.0f, 1.0f, 1.0f);
-		lightShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-		
-		// Material
-		//lightShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
-		//lightShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31);
-		lightShader.setVec3("material.ambient", 1.0f, 1.0f, 1.0f);
-		lightShader.setVec3("material.diffuse", 1.0f, 1.0f, 1.0);
-		lightShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-		lightShader.setFloat("material.shineness", 32.0f);
-		
-		// Light
-		lightShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-		lightShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-		lightShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-		lightShader.setVec3("light.position", lightPos);
-
-
-		extern glm::vec3 position;
-		lightShader.setVec3("viewPos", position);
-		models[0]->draw(lightShader);
-
-		//models[0]->draw(lightShader);
-		//models[2]->draw(lightShader);
-
-		lampShader.use();
-		lampShader.setMat4("view", ViewMatrix);
-		lampShader.setMat4("projection", ProjectionMatrix);
-
-		models[1]->draw(lampShader);
+		renderAll(Shader());
 
 		// Swap buffers
 		glfwSwapBuffers(window);
