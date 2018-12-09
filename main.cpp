@@ -95,11 +95,6 @@ int buildScenery() {
 	//char * path = "models/N64/OoT/hyrulefield/hyrulefeild.obj";
 	//char * path = "models/N64/OoT/templeoftime/TempleofTime.obj";
 	
-	// 3DS
-	//char * path = "models/3DS/OoT/hyrulefield/Field.dae";
-	//char * path = "models/3DS/OoT/kokiriforest/000/KF.dae";
-	
-	
 	Model* model = new Model(path);
 
 	models.push_back(model);
