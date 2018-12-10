@@ -7,8 +7,10 @@ in vec2 TexCoords;
 out vec4 FragColor;
 
 struct Material {
-	sampler2D ambient;
-	sampler2D diffuse;
+	sampler2D tex_ambient;
+	sampler2D tex_diffuse;
+	vec3 ambient;
+	vec3 diffuse;
 	vec3 specular;
 	float shineness;
 };
@@ -24,40 +26,38 @@ struct Light {
 
 uniform Light light;  
 
-uniform vec3 objectColor;
+uniform bool hasTexture;
 uniform vec3 lightColor;
 uniform vec3 viewPos;
 void main() {
+	vec3 ambient;
+	vec3 diffuse;
+
+	if(hasTexture) {
+		ambient = vec3(texture(material.tex_ambient, TexCoords));
+		diffuse = vec3(texture(material.tex_diffuse, TexCoords));
+	}
+	else {
+		ambient = material.ambient;
+		diffuse = material.diffuse;
+	}
+
 	// Ambient
-	vec3 ambient = vec3(texture(material.ambient, TexCoords)) * light.ambient;
+	vec3 Ia = ambient * light.ambient;
 
 	// Diffuse
-	//vec3 norm = normalize(Normal);
 	vec3 norm = normalize(Normal);
 	vec3 lightDir = normalize(light.position - FragPos);
 	float diff = max(dot(norm, lightDir), 0.0);
-	vec3 diffuse = (diff * vec3(texture(material.diffuse, TexCoords))) * light.diffuse;
+	vec3 Id = (diff * diffuse) * light.diffuse;
 	
 	// Specular
 	vec3 viewDir = normalize(viewPos - FragPos);
 	vec3 reflectDir = reflect(-lightDir, norm);
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-	vec3 specular = (material.specular * spec) * light.specular;
+	vec3 Is = (material.specular * spec) * light.specular;
 
 	// Result
-	vec3 result = (ambient + diffuse + specular)* objectColor;
+	vec3 result = (Ia + Id + Is);
 	FragColor = vec4(result, 1.0);
-
-
-	/*
-	vec3 result;
-	if(norm == vec3(0.0, 0.0, 1)) {
-		result = vec3(1.0, 0.0, 0.0); 
-	}
-	else {
-		result = vec3(0.0, 0.0, 0.0);
-	}
-	result = norm;
-	FragColor = vec4(result, 1.0);
-	*/
 }

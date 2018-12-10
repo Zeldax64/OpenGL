@@ -46,9 +46,10 @@ public:
 	vector<Vertex> vertices;
 	vector<GLuint> indices;
 	vector<Texture> textures;
-	//Material mat;
+	Material mat;
+	
 	// Functions
-	Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures);
+	Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures, Material &mat);
 	~Mesh();
 	void draw(Shader shader);
 };

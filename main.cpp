@@ -31,13 +31,7 @@ static const GLfloat triangle_vertex[] = {
 GLFWwindow* window;
 
 // Light position
-glm::vec3 lightPos(10.0f, 0.0f, 0.0f);
-//glm::vec3 lightPos(10.0f, -10.0f, 10.0f);
-//glm::vec3 lightPos(0.0f, -2.0f, 0.0f);
-//glm::vec3 lightPos(0.0f, 0.0f, 3.0f);
-		
-// TODO: Gambiarra variable :D
-
+glm::vec3 lightPos(0.0f, 10.0f, 0.0f);
 
 #define WIDTH 800
 #define HEIGHT 600
@@ -88,6 +82,8 @@ int initWindow() {
 	return 0;
 }
 
+Model* lamp;
+
 int buildScenery() {
 	// Models path
 	//char * path = "models/general/cube/cube_textured.obj";
@@ -96,33 +92,38 @@ int buildScenery() {
 	//char * path = "models/N64/OoT/link/YoungLink.obj";
 	//char * path = "models/N64/OoT/hyrulefield/hyrulefeild.obj";
 	//char * path = "models/N64/OoT/templeoftime/TempleofTime.obj";
-	
 	glm::mat4 ModelMatrix = glm::mat4(1.0);
-	/*
-	Model* model1 = new Model("models/N64/OoT/link/YoungLink.obj");
-	ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.05f));
 	
+	// Loading objects
+	// Zelda
+	Model* model1 = new Model("models/N64/OoT/link/YoungLink.obj");
+	ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0.0f, 2.35f, -3.3f));
+	ModelMatrix = glm::rotate(ModelMatrix, 3.1415f, glm::vec3(0.0f, 1.0f, 0.0f));
+	ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.03f));
 	model1->setModelMatrix(ModelMatrix);
-	*/
 
-	Model* model2 = new Model("models/general/cube/cube_textured.obj");
+	// Floor
+	Model* model3 = new Model("models/general/scenery/simplev5.obj");
+	ModelMatrix = glm::mat4(1.0);
+	ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0.0, 0.0, 0.0));
+	model3->setModelMatrix(ModelMatrix);
+	
+	// Random cube?
+	Model* cube = new Model("models/general/cube/cube_textured.obj");
 
+	// Lamp
+	lamp = new Model("models/general/cube/cube_textured.obj");
 	ModelMatrix = glm::mat4(1.0);
 	ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1.2f));
 	ModelMatrix = glm::translate(ModelMatrix, lightPos);
 
-	model2->setModelMatrix(ModelMatrix);
+	lamp->setModelMatrix(ModelMatrix);
+	
+	//models.push_back(cube);
+	models.push_back(model1);
+	models.push_back(model3);
 
-	/*
-	Model* model3 = new Model("models/general/scenery/simplev5.obj");
-	ModelMatrix = glm::mat4(1.0);
-	model3->setModelMatrix(ModelMatrix);
-	*/
-	Model* cube = new Model("models/general/cube/cube_textured.obj");
-	models.push_back(cube);
-	//models.push_back(model1);
-	models.push_back(model2);
-	//models.push_back(model3);
+	//models.push_back(lamp);
 
 	return 0;
 }
@@ -173,20 +174,9 @@ int main() {
 		lightShader.setMat4("view", ViewMatrix);
 		lightShader.setMat4("projection", ProjectionMatrix);
 
-		//lightShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-		lightShader.setVec3("objectColor", 1.0f, 1.0f, 1.0f);
-		lightShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-		
-		// Material
-		//lightShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
-		//lightShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31);
-		lightShader.setVec3("material.ambient", 1.0f, 1.0f, 1.0f);
-		lightShader.setVec3("material.diffuse", 1.0f, 1.0f, 1.0);
-		lightShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-		lightShader.setFloat("material.shineness", 32.0f);
-		
 		// Light
-		lightShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+		lightShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+		lightShader.setVec3("light.ambient", 0.4f, 0.4f, 0.4f);
 		lightShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
 		lightShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 		lightShader.setVec3("light.position", lightPos);
@@ -194,16 +184,13 @@ int main() {
 
 		extern glm::vec3 position;
 		lightShader.setVec3("viewPos", position);
-		models[0]->draw(lightShader);
-
-		//models[0]->draw(lightShader);
-		//models[2]->draw(lightShader);
+		renderAll(lightShader);
 
 		lampShader.use();
 		lampShader.setMat4("view", ViewMatrix);
 		lampShader.setMat4("projection", ProjectionMatrix);
 
-		models[1]->draw(lampShader);
+		lamp->draw(lampShader);
 
 		// Swap buffers
 		glfwSwapBuffers(window);

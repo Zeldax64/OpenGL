@@ -93,6 +93,12 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene * scene) {
 	}
 
 	// Process material
+	Material mat;
+	mat.Ambient = glm::vec3(1.0);
+	mat.Diffuse = glm::vec3(1.0);
+	mat.Specular = glm::vec3(1.0);
+	mat.Shininess = 1.0f;
+
 	if(mesh->mMaterialIndex >= 0) {
 		aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
 		// 1. Diffuse maps
@@ -114,17 +120,23 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene * scene) {
 		material->Get(AI_MATKEY_COLOR_DIFFUSE, dif);
 		material->Get(AI_MATKEY_COLOR_SPECULAR, spe);
 		material->Get(AI_MATKEY_SHININESS, shine);
-
+		
+		/*
 		std::cout << "Printing Mesh Material"<< std::endl;
 		std::cout << "Ambient: R: " << amb.r << " G: " << amb.g << " B:" << amb.b << std::endl;
 		std::cout << "Diffuse: R: " << dif.r << " G: " << dif.g << " B:" << dif.b << std::endl;
 		std::cout << "Specular: R: " << spe.r << " G: " << spe.g << " B:" << spe.b << std::endl;
 		std::cout << "Shininess: " << shine << std::endl;
+		*/
 		
+		mat.Ambient = glm::vec3(amb.r, amb.g, amb.b);
+		mat.Diffuse = glm::vec3(dif.r, dif.g, dif.b);
+		mat.Specular = glm::vec3(spe.r, spe.g, spe.b);
+		mat.Shininess = shine;
 	}
 
 
-	return Mesh(vertices, indices, textures);
+	return Mesh(vertices, indices, textures, mat);
 }
 
 vector<Texture> Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName) {

@@ -1,10 +1,22 @@
 #include "common/Mesh.hpp"
 
-Mesh::Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures) {
+Mesh::Mesh(vector<Vertex> vertices, vector<GLuint> indices, vector<Texture> textures, Material & mat) {
 	this->vertices = vertices;
 	this->indices = indices;
 	this->textures = textures;
 
+	this->mat.Ambient = mat.Ambient;
+	this->mat.Diffuse = mat.Diffuse;
+	this->mat.Specular = mat.Specular;
+	this->mat.Shininess = mat.Shininess;
+
+	/*
+	std::cout << "Printing Mesh Material"<< std::endl;
+	std::cout << "Ambient: R: " << mat.Ambient.x << " G: " << mat.Ambient.y << " B:" << mat.Ambient.z << std::endl;
+	std::cout << "Diffuse: R: " << mat.Diffuse.x << " G: " << mat.Diffuse.y << " B:" << mat.Diffuse.z << std::endl;
+	std::cout << "Specular: R: " << mat.Specular.x << " G: " << mat.Specular.y << " B:" << mat.Specular.z << std::endl;
+	std::cout << "Shininess: " << mat.Shininess << std::endl;
+	*/	
 	setupMesh();
 }
 
@@ -13,10 +25,18 @@ Mesh::~Mesh() {}
 void Mesh::draw(Shader shader) {
 
 	if(textures.size()) {
+		shader.setBool("hasTexture", true);
 		GLuint TextureUniform = glGetUniformLocation(shader.ID, "material.diffuse"); 
 		glActiveTexture(GL_TEXTURE0);
 		glUniform1i(TextureUniform, 0);	
 		glBindTexture(GL_TEXTURE_2D, textures[0].id);
+	}
+	else {
+		shader.setBool("hasTexture", false);
+		shader.setVec3("material.ambient", mat.Ambient);
+		shader.setVec3("material.diffuse", mat.Diffuse);
+		shader.setVec3("material.specular", mat.Specular);
+		shader.setFloat("material.shininess", mat.Shininess);
 	}
 
 	// drawing without textures
